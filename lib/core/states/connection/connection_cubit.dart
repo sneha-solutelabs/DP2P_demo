@@ -1,25 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_deriv_api/basic_api/generated/authorize_receive.dart';
-import 'package:poc_with_p2p/core/states/connection/connection_state.dart' as ConnectionState;
-import 'package:poc_with_p2p/core/states/connection/connection_state.dart';
+import 'package:poc_with_p2p/core/states/connection/connection_state.dart' ;
 
 import '../../drive_connection/binary_api_wrapper.dart';
 
-class NetworkConnectionCubit extends Cubit<ConnectionState.NetworkConnectionState> {
+///Connection cubit
+class NetworkConnectionCubit extends
+  Cubit<NetworkConnectionState> {
+  ///init
   NetworkConnectionCubit() : super(InitialConnectionState()){
     initialize();
   }
 
   late BinaryAPIWrapper _api ;
 
+  /// Api wrapper
   BinaryAPIWrapper get binaryApi => _api;
 
-  void initialize() async {
+  /// Initialize
+  Future<void> initialize() async {
     _api = BinaryAPIWrapper();
-    connectToWebSocket();
+    await connectToWebSocket();
   }
 
+  /// Connection set up
   Future<void> connectToWebSocket() async {
 
     emit(Connecting(_api));
@@ -27,16 +32,14 @@ class NetworkConnectionCubit extends Cubit<ConnectionState.NetworkConnectionStat
     await _api.run(
       onDone: (UniqueKey? uniqueKey) {
         emit(Connected(_api));
-        print('done call back');
       },
       onOpen: (UniqueKey? uniqueKey) {
-        print('open call back');
       },
       onError: (UniqueKey? uniqueKey) {
-        emit(ConnectionState.Disconnected());
+        emit(Disconnected());
       },
     );
-    _ping();
+    await _ping();
   }
 
   Future<void> _ping() async {
@@ -45,7 +48,8 @@ class NetworkConnectionCubit extends Cubit<ConnectionState.NetworkConnectionStat
           .ping();
 
       if (response['ping'] == 'pong') {
-        final AuthorizeResponse response = await _api.authorize("9Oh9nWiaLe0mxd9");
+        final AuthorizeResponse response =
+        await _api.authorize('9Oh9nWiaLe0mxd9');
 
         if(response.error == null){
           emit(Connected(_api));
@@ -53,8 +57,8 @@ class NetworkConnectionCubit extends Cubit<ConnectionState.NetworkConnectionStat
           emit(Disconnected());
         }
       }
-    } catch (e) {
-      print(e.toString());
+    }on Exception  catch(_){
+      emit(Disconnected());
     }
   }
 }

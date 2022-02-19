@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:poc_with_p2p/feature/advert/presentation/widgets/adverts_list.dart';
 
 ///Home page where all component are integrate [ActiveSymbolsDropDown],
 ///[SelectedSymbolDetail],[AvailableContractList]

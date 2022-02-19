@@ -1,25 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_deriv_api/services/connection/api_manager/binary_api.dart';
 import 'package:poc_with_p2p/core/drive_connection/binary_api_wrapper.dart';
 
 import '../../drive_connection/api_error.dart';
 
 @immutable
+///Network Connection State
 abstract class NetworkConnectionState {}
 
-
+///Initial Connection State
 class InitialConnectionState extends NetworkConnectionState {}
-
+///Connecting
 class Connecting extends NetworkConnectionState {
-  final BinaryAPIWrapper api;
-
+  ///Init
   Connecting(this.api);
+  ///api
+  final BinaryAPIWrapper api;
 }
 
-
+///Connected
 class Connected extends NetworkConnectionState {
-  final BinaryAPIWrapper api;
+  ///init
   Connected(this.api);
+  ///api
+  final BinaryAPIWrapper api;
+
 }
 
 /// This state represents that the WebSocket is disconnect.

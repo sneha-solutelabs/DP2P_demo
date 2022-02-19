@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:poc_with_p2p/core/drive_connection/binary_api_wrapper.dart';
 import 'package:poc_with_p2p/core/enums.dart';
+import 'package:poc_with_p2p/core/states/connection/connection_cubit.dart';
+import 'package:poc_with_p2p/core/states/connection/connection_state.dart';
 import 'package:poc_with_p2p/feature/advert/presentation/widgets/short_drop_down.dart';
 import 'package:poc_with_p2p/feature/advert/states/advert.dart';
 import 'package:poc_with_p2p/feature/advert/states/advert_cubit.dart';
@@ -12,6 +16,7 @@ class AdvertList extends StatefulWidget {
   ///Initializes
   const AdvertList({required this.api}) : super();
 
+  ///Base api
   final BinaryAPIWrapper api;
 
   @override
@@ -22,13 +27,16 @@ class _AdvertList extends State<AdvertList> {
 
   late final AdvertListCubit _advertListCubit ;
   final ScrollController _scrollController = ScrollController();
-  final List<AdvertSortType> _shortList = <AdvertSortType>[AdvertSortType.rate,AdvertSortType.completion];
+  final List<AdvertSortType> _shortList =
+  <AdvertSortType>[AdvertSortType.rate,AdvertSortType.completion];
+  StreamSubscription<void>? _periodicFetchSubscription;
 
   @override
   void initState() {
     _advertListCubit =  AdvertListCubit(api: widget.api);
     _advertListCubit.fetchAdvertList();
     _scrollController.addListener(_onScroll);
+    super.initState();
   }
 
   @override
@@ -39,16 +47,33 @@ class _AdvertList extends State<AdvertList> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    //
+    final NetworkConnectionCubit connectionCubit =
+    context.read<NetworkConnectionCubit>();
+    _periodicFetchSubscription?.cancel();
+
+    _periodicFetchSubscription = Stream<void>.periodic(
+      const Duration(minutes: 1),
+    ).listen((_) {
+      if (connectionCubit.state is Connected) {
+        _advertListCubit.fetchAdvertList(isPeriodic: true);
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) => BlocProvider<AdvertListCubit>(
-    create: (context) => _advertListCubit,
+    create: (BuildContext context) => _advertListCubit,
     child: Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(16),
       child: Column(
-        children: [
+        children: <Widget>[
           Row(
-            children: [
+            children:<Widget> [
               Expanded(flex : 4,child: _searchBar()),
-              SizedBox(width: 8,),
+              const SizedBox(width: 8),
               Expanded(
                 flex: 2,
                 child: DropDownMenu(
@@ -62,7 +87,7 @@ class _AdvertList extends State<AdvertList> {
               ),
             ],
           ),
-          SizedBox(height: 8,),
+          const SizedBox(height: 8,),
           Expanded(child: _listWidget())
         ],
       ),
@@ -75,21 +100,22 @@ class _AdvertList extends State<AdvertList> {
         borderRadius: BorderRadius.circular(16)
     ),
     child: TextFormField(
-      decoration: InputDecoration(
+      decoration: const InputDecoration(
         border: InputBorder.none,
-        prefixIcon: const Icon(Icons.search),
+        prefixIcon: Icon(Icons.search),
 
       ),
-      onChanged: (text) {
+      onChanged: (String text) {
         _advertListCubit.searchQuery(queryString: text);
       },
     ),
 
   );
+
   Widget _listWidget() => BlocBuilder<AdvertListCubit, AdvertListState>(
-    builder: (context, state) {
-      if (state is AdvertListInitialState) {
-        return Center(
+    builder: (BuildContext context, AdvertListState state) {
+      if (state is AdvertListInitialState || state is AdvertListLoadingState) {
+        return const Center(
           child: CircularProgressIndicator(),
         );
       } else if (state is AdvertListLoadedState) {
@@ -101,7 +127,7 @@ class _AdvertList extends State<AdvertList> {
             physics: const BouncingScrollPhysics(),
             itemBuilder:(BuildContext context, int index) {
               if(index >= state.advertList!.length){
-                return Center(child:CircularProgressIndicator());
+                return const Center(child:CircularProgressIndicator());
               }else{
                 return Padding(
                     padding: const EdgeInsets.fromLTRB(0,0,0,8),
@@ -111,12 +137,12 @@ class _AdvertList extends State<AdvertList> {
 
             });
       } else{
-        return Center(child: Text('connecting... :'));
+        return const Center(child: Text('connecting... :'));
       }
     },
   );
 
-  _listItem(Advert advert) => Container(
+  Widget _listItem(Advert advert) => Container(
     padding: const EdgeInsets.all(12) ,
     decoration: BoxDecoration(
         border: Border.all(color: Colors.grey),
@@ -125,24 +151,33 @@ class _AdvertList extends State<AdvertList> {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Text(advert.advertiserDetails?.name ?? ''),
+        _listRowItem(key: 'Name',value: advert.advertiserDetails?.name ?? ''),
         const SizedBox(height: 8),
-        Text(advert.description ?? ''),
+        _listRowItem(key: 'ID',value: advert.id??''),
         const SizedBox(height: 8),
-        Text('$advert : ID : ${advert.id}'),
+        _listRowItem(key: 'Price',value: advert.priceDisplay ?? ''),
         const SizedBox(height: 8),
-        Text('amount : ${advert.amountDisplay }'),
+        _listRowItem(key: 'Country',value: advert.country ?? ''),
+        const SizedBox(height: 8),
+        _listRowItem(key: 'Description',value: advert.description ?? ''),
       ],
     ),
   );
 
-  _onScroll({AdvertListState? state}) {
+  Widget _listRowItem ({required String key,required String value }) => Row(
+    children: <Widget>[
+      Expanded(
+        flex: 2,
+          child: Text(key),
+      ),
+      Expanded(flex: 4,child: Text(value))
+    ]
+  );
+  void _onScroll({AdvertListState? state}) {
     if (_scrollController.position.maxScrollExtent !=
         _scrollController.offset) {
       return;
     }
     _advertListCubit.fetchAdvertList();
   }
-
-
 }

@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_deriv_api/basic_api/generated/authorize_receive.dart';
@@ -14,6 +12,7 @@ import 'package:flutter_deriv_api/services/connection/api_manager/connection_inf
 import 'package:poc_with_p2p/core/enums.dart';
 import 'package:poc_with_p2p/core/helper/json_helper.dart';
 
+///api wrapper
 class BinaryAPIWrapper {
   /// Constructs a new BinaryAPIWrapper.
   BinaryAPIWrapper() {
@@ -23,6 +22,7 @@ class BinaryAPIWrapper {
   // final Interceptor? interceptor;
   late final deriv_api.BinaryAPI _derivAPI;
 
+  /// Do connection
   Future<void> run({required Function(UniqueKey) onOpen,
     required  Function(UniqueKey) onDone,
     required Function(UniqueKey) onError}) async{
@@ -36,8 +36,7 @@ class BinaryAPIWrapper {
     await _derivAPI.connect(connectionInformation,
         onDone: onDone.call,
         onOpen:  onOpen.call,
-        onError:  (_)=> {   print('error')});
-
+        onError:  onError.call);
   }
 
 
@@ -47,15 +46,15 @@ class BinaryAPIWrapper {
   }
 
   Future<Map<String, dynamic>> _derivAPICall(Request request) async {
-    // interceptor?.onRequest(request.toJson());
-
     final Response response = await _derivAPI.call<Response>(request: request);
 
     return _normalizeErrorObject(response);
   }
 
+  ///ping api
   Future<Map<String, dynamic>> ping() => _derivAPICall(const PingRequest());
 
+  ///authorize api
   Future<AuthorizeResponse> authorize(String? token) async {
     AuthorizeResponse authObj;
     try {
@@ -86,6 +85,7 @@ class BinaryAPIWrapper {
   }
 
 
+  ///advert  list api
   Future<Map<String, dynamic>> p2pAdvertList({
     String? counterpartyType,
     int? limit,

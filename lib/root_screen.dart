@@ -32,11 +32,11 @@ class _RootScreenState extends State<RootScreen>{
       title: const Text('Drive Demo'),
     ),
     body: BlocProvider<NetworkConnectionCubit>(
-      create: (context) => NetworkConnectionCubit(),
+      create: (BuildContext context) => NetworkConnectionCubit(),
       child: BlocBuilder<NetworkConnectionCubit, NetworkConnectionState>(
-        builder: (context, state) {
+        builder: (BuildContext context, NetworkConnectionState state) {
           if (state is Connecting) {
-            return Center(
+            return const Center(
               child: CircularProgressIndicator(),
             );
           } else if (state is Connected) {
@@ -44,14 +44,11 @@ class _RootScreenState extends State<RootScreen>{
           } else if(state is Disconnected){
             return Text(state.error.toString());
           }else{
-            return Text('else');
+            return const Text('else');
           }
         },
       ),
     ),
-  );
-  Widget _buildCenterText(String text) => Center(
-    child: Text(text),
   );
 
 }

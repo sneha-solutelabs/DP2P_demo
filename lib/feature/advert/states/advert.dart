@@ -1,6 +1,7 @@
 import 'package:poc_with_p2p/core/enums.dart';
 import 'package:poc_with_p2p/feature/advert/states/advertiser.dart';
 
+/// Advert model
 class Advert {
   /// Advert Const
   Advert(
@@ -13,6 +14,7 @@ class Advert {
         this.description,
         this.id,
         this.sortBy,
+        this.priceDisplay,
         this.advertiserDetails});
 
   /// Advert Const
@@ -29,6 +31,7 @@ class Advert {
       id: advert['id'],
       sortBy: _getAdvertSortType(advert['sort_by']),
       isActive: advert['is_active'] == 1,
+      priceDisplay: advert['price_display'],
       remainingAmountDisplay: advert['remaining_amount_display']);
 
   /// accountCurrency val
@@ -58,7 +61,11 @@ class Advert {
   /// advertiserDetails val
   final Advertiser? advertiserDetails;
 
+  /// short by
   final AdvertSortType? sortBy;
+
+  /// amountDisplay val
+  final String? priceDisplay;
 
   static AdvertSortType _getAdvertSortType(String? sortBy) {
     switch (sortBy) {

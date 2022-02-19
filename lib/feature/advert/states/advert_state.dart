@@ -5,6 +5,7 @@ abstract class AdvertListState {}
 ///Loading state for ticks
 class AdvertListInitialState extends AdvertListState {}
 
+/// AdvertList Loading State
 class AdvertListLoadingState extends AdvertListState {}
 
 ///Loaded state for ticks
@@ -17,6 +18,7 @@ class AdvertListLoadedState extends AdvertListState {
 
   ///tick object
   final List<Advert>? advertList;
+  /// reach max index
   final bool hasReachedMax;
 
 }

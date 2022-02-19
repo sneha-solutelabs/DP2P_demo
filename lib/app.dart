@@ -34,18 +34,18 @@ class _AppState extends State<App> {
             secondary: Colors.grey,
           ),
           appBarTheme: AppBarTheme.of(context).copyWith(
-            backgroundColor: Color(0xFF6E6E6E),
+            backgroundColor: const Color(0xFF6E6E6E),
             centerTitle: false,
           ),
         ),
         initialRoute: RootScreen.routeName,
         onUnknownRoute: (RouteSettings settings) => MaterialPageRoute<void>(
           settings: settings,
-          builder: (BuildContext context) => RootScreen(),
+          builder: (BuildContext context) => const RootScreen(),
         ),
         routes: <String, WidgetBuilder>{
           RootScreen.routeName: (BuildContext context) =>
-              RootScreen(),
+              const RootScreen(),
           DashboardPage.routeName: (BuildContext context) =>
               DashboardPage()
         },
